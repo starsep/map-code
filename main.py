@@ -7,7 +7,7 @@ warsaw = mazowieckie(
     "a[admin_level=8][population>50000][boundary=administrative][name=Warszawa]"
 ).one
 buildings = mazowieckie("a[building=apartments]").within(warsaw)
-with Path("generated/buildings.js").open("w+") as f:
+with Path("generated/buildings.js").open("w") as f:
     f.write("const buildings = [\n")
     for building in buildings:
         levels = max(building.num("building:levels"), 1)
