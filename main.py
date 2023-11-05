@@ -4,8 +4,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, List
 
+import geojson
+import httpx
 import numpy as np
 from geodesk import Features, Coordinate
+from geojson import FeatureCollection, Feature
 from jinja2 import Environment, PackageLoader
 from scipy.spatial import Voronoi
 from shapely import Polygon, LinearRing, Point
@@ -113,6 +116,24 @@ def generateVeturiloVoronoi(generatedMap: GeneratedMap):
         f.write("];\n")
 
 
+def fetchIsochrone(point: Coordinate):
+    url = f'http://localhost:8989/isochrone?profile=foot&point={point.lat},{point.lon}&distance_limit=500&buckets=1'
+    response = httpx.get(url)
+    response.raise_for_status()
+    return response.json()["polygons"]
+
+def generateSubwayAccess(generatedMap: GeneratedMap):
+    subwayStations = mazowieckie("*[station=subway]")
+    features = []
+    for station in subwayStations:
+        data = fetchIsochrone(station.centroid)
+        features.append(Feature(geometry=Point(station.lon, station.lat)))
+        features.extend(data)
+    # features.sort(key=lambda feature: feature["properties"]["bucket"])
+    with (generatedMap.mapDir / "data.geojson").open("w") as f:
+        geojson.dump(FeatureCollection(features), f)
+
+
 def generateIndex(generatedMaps: List[GeneratedMap]):
     environment = Environment(loader=PackageLoader("main", "template"))
     template = environment.get_template("index.html.j2")
@@ -149,6 +170,12 @@ def main():
             scriptName="veturiloVoronoi.js",
             title="Warszawa: Diagram Woronoja stacji Veturilo",
             generateFunction=generateVeturiloVoronoi,
+        ),
+        GeneratedMap(
+            mapDirName="metro",
+            scriptName="subway.js",
+            title="Warszawa: Dostępność stacji metra",
+            generateFunction=generateSubwayAccess,
         ),
     ]
     generateIndex(generatedMaps)
