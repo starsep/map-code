@@ -55,7 +55,8 @@ def generateBicycleParkingHeatmap(generatedMap: GeneratedMap):
     with generatedMap.dataPath.open("w") as f:
         f.write("export const bicycleParkings = [\n")
         for bicycleParking in bicycleParkings:
-            capacity = max(bicycleParking.num("capacity"), 2)
+            # capacity = min(max(bicycleParking.num("capacity"), 2)
+            capacity = 1
             f.write(f"[{bicycleParking.lat}, {bicycleParking.lon}, {capacity}],\n")
         f.write("];\n")
 
