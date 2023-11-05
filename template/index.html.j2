@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>starsep.com: Mapy</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+</head>
+<body>
+    <h1>Mapy</h1>
+    <ul>
+        {% for map in generatedMaps %}
+        <li><a href="./{{ map.mapDirName }}">{{ map.title }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
